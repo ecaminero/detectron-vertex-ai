@@ -1,0 +1,21 @@
+version: "3.9"  # optional since v1.27.0
+services:
+  service:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./output:/home/user/output
+    environment:
+      - PYTORCH_NO_CUDA_MEMORY_CACHING=1
+    devices:
+      - /dev/nvidia0:/dev/nvidia0
+      - /dev/nvidiactl:/dev/nvidiactl
+      - /dev/nvidia-modeset:/dev/nvidia-modeset
+      - /dev/nvidia-uvm:/dev/nvidia-uvm
+      - /dev/nvidia-uvm-tools:/dev/nvidia-uvm-tools
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]

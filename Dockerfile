@@ -29,22 +29,33 @@ RUN apt-get update \
 
 RUN curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
 
+# Install gcloud.
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+RUN apt-get update
+RUN apt-get install -y google-cloud-sdk
+
+# Install cloudml-hypertune for hyperparameter tuning
+RUN pip install --upgrade google-cloud-storage
+RUN pip install --upgrade cloudml-hypertune gcloud
+
 # We copy our Python requirements here to cache them
 # and install only runtime deps using poetry
 WORKDIR $PYSETUP_PATH
 COPY ./poetry.lock ./pyproject.toml ./
 RUN poetry install --no-dev  # respects 
 
-
 # 'production' stage uses the clean 'python-base' stage and copyies
 # in only our runtime deps that were installed in the 'builder-base'
-FROM python-base as production
-ENV PORT=8000
-ENV FASTAPI_ENV=production
-ENV DEFAULT_PATH=/src
+FROM builder-base as production
+WORKDIR /app
+
+ENV PORT 8000
+ENV FASTAPI_ENV production
+ENV DEFAULT_PATH /src
 
 EXPOSE $PORT
 COPY --from=builder-base $VENV_PATH $VENV_PATH
-COPY ./src /src
+COPY . .
 
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 src.main:app
