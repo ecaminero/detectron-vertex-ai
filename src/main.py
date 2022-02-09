@@ -1,16 +1,18 @@
-from . import config
-from flask import Flask
-from flasgger import Swagger
+from urllib import request
+from . import config, inference
+from .inference import prediction
+from flask import Flask, jsonify
 from apispec import APISpec
-from flasgger.utils import apispec_to_template
-from .schema import HealthSchema
+from flasgger import Swagger, apispec_to_template, validate
 from apispec.ext.marshmallow import MarshmallowPlugin
 from apispec_webframeworks.flask import FlaskPlugin
+from .schema import HealthSchema, InferenceParamsSchema, PredictionSchema
 
 app = Flask(__name__)
-# Create an APISpec
+
+# Create an API Specification
 spec = APISpec(
-    title='Flasger Petstore',
+    title='Image Detectron Vertex-AI',
     version='1.0.10',
     openapi_version='2.0.0',
     plugins=[
@@ -23,13 +25,12 @@ spec = APISpec(
 @app.route("/health", methods=["GET"])
 def health():
     """
-    A cute furry animal endpoint.
-    Get a random pet
+    HealthCheck.
     ---
-    description: Get a random pet
+    description: HealthCheck App endpoint
     responses:
         200:
-            description: A pet to be returned
+            description: Status check
             schema:
                 $ref: '#/definitions/Health'
     """    
@@ -37,15 +38,44 @@ def health():
     return HealthSchema().dump(check)
 
 
+@app.route("/inference", methods=["POST"])
+def inference():
+    """
+    Inference endpoint.
+    ---
+    post:
+        description: HealthCheck App endpoint
+        parameters:
+          - name: prediction
+            in: body
+            required: True
+            schema:
+                $ref: '#/definitions/InferenceParams'
+    responses:
+        201:
+            description: A pet to be returned
+            schema:
+                $ref: '#/definitions/Prediction'
+    """
+    print(request) 
+    result = prediction()
+    return jsonify(result, 201)
+
 
 template = apispec_to_template(
     app=app,
     spec=spec,
-    definitions=[HealthSchema],
-    paths=[health]
+    definitions=[
+        HealthSchema, 
+        InferenceParamsSchema,
+        PredictionSchema
+    ],
+    paths=[health, inference]
+
 )
 
 swag = Swagger(app, template=template)
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(config.APP_PORT))
