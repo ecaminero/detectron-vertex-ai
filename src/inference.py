@@ -1,9 +1,6 @@
 
 def prediction():
     p = dict (
-        predictions = ["sample", "predict"],
-        deployedModelId = "asdasd",
-        model = "detectron2",
-        modelDisplayName = "detectron2"
+        predictions = [{"value": 999, "location": "location"}],
     )
     return p

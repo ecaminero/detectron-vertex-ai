@@ -59,7 +59,7 @@ def inference():
     """
     print(request) 
     result = prediction()
-    return jsonify(result, 201)
+    return jsonify(result)
 
 
 template = apispec_to_template(

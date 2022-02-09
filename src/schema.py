@@ -6,9 +6,6 @@ class InstancesInput(Schema):
 class ParametersInput(Schema):
     weight = fields.Str(required=True)
 
-class PredictionsResponseSchema(Schema):
-    weight = fields.Str()
-
 
 # Schema for API
 class InferenceParamsSchema(Schema):
@@ -18,9 +15,6 @@ class InferenceParamsSchema(Schema):
 
 class PredictionSchema(Schema):
     predictions =  fields.List(fields.Str())
-    deployedModelId = fields.Str()
-    model = fields.Str()
-    modelDisplayName = fields.Str()
 
 class HealthSchema(Schema):
     status = fields.Str()
