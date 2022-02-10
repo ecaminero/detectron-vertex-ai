@@ -1,20 +1,28 @@
-from flasgger import Schema, fields
+from pydantic import BaseModel, Field
+from typing import List, Optional
 
-class InstancesInput(Schema):
-    content = fields.Str()
+class Instances(BaseModel):
+    image_url: str
+    name: str
 
-class ParametersInput(Schema):
-    weight = fields.Str(required=True)
+class Parameters(BaseModel):
+    output: str
+    config_file: Optional[str] = "model/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
+    weights_file: Optional[str] = None
+    confidence_threshold: Optional[float] = 0.5
+    cpu: Optional[bool] = False
+    single_process: Optional[bool] = False
+    queue_size: Optional[bool] = 3
+    separate_background: Optional[bool] = False
 
-
+    
 # Schema for API
-class InferenceParamsSchema(Schema):
-    instances = fields.Nested(InstancesInput, many=True, required=True)
-    parameters = fields.Nested(ParametersInput)
+class Inference(BaseModel):
+    instances: List[Instances]
+    parameters: Optional[Parameters]
 
+class Predictions(BaseModel):
+    predictions: List[str] = []
 
-class PredictionSchema(Schema):
-    predictions =  fields.List(fields.Str())
-
-class HealthSchema(Schema):
-    status = fields.Str()
+class Health(BaseModel):
+    status: str
