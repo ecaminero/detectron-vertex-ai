@@ -34,6 +34,7 @@ RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.
 RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 RUN apt-get update
 RUN apt-get install -y google-cloud-sdk
+RUN pip install poethepoet
 
 # Install cloudml-hypertune for hyperparameter tuning
 RUN pip install --upgrade google-cloud-storage
@@ -44,6 +45,10 @@ RUN pip install --upgrade cloudml-hypertune gcloud
 WORKDIR $PYSETUP_PATH
 COPY ./poetry.lock ./pyproject.toml ./
 RUN poetry install --no-dev  # respects 
+
+# Install Pip Package with poe
+RUN poe torch 
+RUN poe detectron2 
 
 # 'production' stage uses the clean 'python-base' stage and copyies
 # in only our runtime deps that were installed in the 'builder-base'
@@ -58,4 +63,4 @@ EXPOSE $PORT
 COPY --from=builder-base $VENV_PATH $VENV_PATH
 COPY . .
 
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 src.main:app
+CMD exec uvicorn src.main:app --port $PORT

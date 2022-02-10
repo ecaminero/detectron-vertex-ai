@@ -4,25 +4,37 @@ version = "0.1.0"
 description = ""
 authors = ["Edwin <ecaminero@entelocean.io>"]
 readme = "README.md"
-
+packages = [
+    { include = "pipeline", from = "model" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-Flask = "^2.0.2"
-gunicorn = "^20.1.0"
 google-cloud-aiplatform = "^1.9.0"
-flasgger = "^0.9.5"
-apispec = {extras = ["yaml", "validation", "marshmallow"], version = "^5.1.1"}
-apispec-webframeworks = "^0.5.2"
-marshmallow = "^3.14.1"
+fastapi = "^0.73.0"
+uvicorn = {extras = ["standard"], version = "^0.17.4"}
+tqdm = "^4.62.3"
+opencv-python = "^4.5.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+poethepoet = "^0.12.3"
+
+[tool.poe.tasks]
+torch = """
+    python -m pip install torch==1.10.2+cu113 \
+    torchvision==0.11.3+cu113 \
+    torchaudio==0.10.2+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
+"""
+
+detectron2 = """
+    python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
+    pip install 'git+https://github.com/facebookresearch/fvcore.git'
+"""
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-app = 'flask run'
-
+app = 'uvicorn src.main:app --reload'

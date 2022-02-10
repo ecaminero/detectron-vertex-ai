@@ -1,0 +1,2 @@
+---
+BASE: "../../../detectron2/configs/Base-RetinaNet.yaml"
