@@ -1,7 +1,7 @@
 from .inference import prediction
-from urllib import request
 from fastapi import FastAPI
 from .schema import Health, Predictions, Inference
+from google.cloud import storage
 
 app = FastAPI()
 
@@ -18,6 +18,6 @@ def inference(data: Inference):
     """
     Ejecute inference
     """    
-    print(data) 
-    result = prediction(data)
-    return {}
+    results = prediction(data)
+    print(results)
+    return Predictions(predictions=results)

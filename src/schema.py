@@ -3,7 +3,7 @@ from typing import List, Optional
 
 class Instances(BaseModel):
     image_url: str
-    name: str
+    bucket: str
 
 class Parameters(BaseModel):
     output: str
@@ -15,14 +15,17 @@ class Parameters(BaseModel):
     queue_size: Optional[bool] = 3
     separate_background: Optional[bool] = False
 
+class Prediction(BaseModel):
+    image: str
     
 # Schema for API
 class Inference(BaseModel):
     instances: List[Instances]
     parameters: Optional[Parameters]
 
+
 class Predictions(BaseModel):
-    predictions: List[str] = []
+    predictions: List[Prediction]
 
 class Health(BaseModel):
     status: str

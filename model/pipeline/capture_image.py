@@ -1,5 +1,5 @@
 import cv2
-
+import os
 from pipeline.pipeline import Pipeline
 
 
@@ -17,6 +17,7 @@ class CaptureImage(Pipeline):
         image = cv2.imread(self.src)
 
         data = {
+            "name": os.path.basename(self.src),
             "image_id": self.src,
             "image": image
         }
