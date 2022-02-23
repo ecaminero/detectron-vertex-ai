@@ -3,7 +3,6 @@ name = "detectron-inference"
 version = "0.1.0"
 description = ""
 authors = ["Edwin <ecaminero@entelocean.io>"]
-readme = "README.md"
 packages = [
     { include = "pipeline", from = "model" },
 ]

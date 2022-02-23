@@ -1,7 +1,36 @@
-
-
 # Creating a python base with shared environment variables
-FROM detectron2-docker_detectron2-cuda-11 as cuda-base
+FROM nvidia/cuda:11.3.1-devel-ubuntu20.04 as cuda-base
+
+# cuda-env
+ENV DEBIAN_FRONTEND noninteractive
+
+# set PYTORCH_NO_CUDA_MEMORY_CACHING=1 in your environment to disable caching.
+ENV PYTORCH_NO_CUDA_MEMORY_CACHING 0
+
+# This will by default build detectron2 for all common cuda architectures and take a lot more time,
+# because inside `docker build`, there is no way to tell which architecture will be used.
+ARG TORCH_CUDA_ARCH_LIST="Kepler;Kepler+Tesla;Maxwell;Maxwell+Tegra;Pascal;Volta;Turing"
+ENV TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}"
+
+# Set a fixed model cache directory.
+ENV FVCORE_CACHE="/tmp"
+
+# set FORCE_CUDA because during `docker build` cuda is not accessible
+ENV FORCE_CUDA 1
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
+
+# Update
+RUN apt-get update && apt-get install -y
+
+# Install python pip 
+RUN apt-get update && apt-get install -y \
+	python3-opencv ca-certificates wget python3-dev git sudo ninja-build python3-pip
+
+RUN ln -sv /usr/bin/python3 /usr/bin/python
+
+
+# Python Pyenv 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=off \
@@ -42,13 +71,15 @@ RUN pip install --upgrade cloudml-hypertune gcloud
 
 # We copy our Python requirements here to cache them
 # and install only runtime deps using poetry
+# Install Pip Package with poe
 WORKDIR $PYSETUP_PATH
 COPY ./poetry.lock ./pyproject.toml ./
-RUN poetry install --no-dev  # respects 
+COPY ./model ./model
 
-# Install Pip Package with poe
+# poetry packages
+RUN poetry install --no-dev  # respects 
 RUN poe torch 
-RUN poe detectron2 
+RUN poe detectron2
 
 # 'production' stage uses the clean 'python-base' stage and copyies
 # in only our runtime deps that were installed in the 'builder-base'
@@ -63,4 +94,4 @@ EXPOSE $PORT
 COPY --from=builder-base $VENV_PATH $VENV_PATH
 COPY . .
 
-CMD exec uvicorn src.main:app --port $PORT
+CMD exec uvicorn src.main:app --host 0.0.0.0 --port $PORT
